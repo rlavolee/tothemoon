@@ -2,7 +2,6 @@ package modules
 
 import javax.inject.Singleton
 
-import com.github.tototoshi.csv.CSVReader
 import models.csv.{Airport, CsvRow}
 import play.api.{Configuration, Environment, Logger}
 import play.api.inject.{Binding, Module}
@@ -16,12 +15,7 @@ class AirportsManager {
 
   private val csvFilePath = "csv-source/airports.csv"
 
-  val airports: ParVector[Airport] = {
-    for {
-      l <- CSVReader.open(Source.fromResource(csvFilePath)).all().toVector.tail.par
-      v <- Airport.from(CsvRow(l))
-    } yield v
-  }
+  val airports: ParVector[Airport] = Airport.applyFromCSV(csvFilePath)
 
   Logger.info(s"Airport Manager ready with ${airports.length} countries")
 }

@@ -16,12 +16,7 @@ class RunwaysManager {
 
   private val csvFilePath = "csv-source/runways.csv"
 
-  val runways: ParVector[Runway] = {
-    for {
-      l <- CSVReader.open(Source.fromResource(csvFilePath)).all().toVector.tail.par
-      v <- Runway.from(CsvRow(l))
-    } yield v
-  }
+  val runways: ParVector[Runway] = Runway.applyFromCSV(csvFilePath)
 
   Logger.info(s"Runways Manager ready with ${runways.length} countries")
 }

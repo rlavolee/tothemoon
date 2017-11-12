@@ -8,7 +8,6 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(
   guice,
-  "com.github.julien-truffaut"  %%  "monocle-core"  % Version.monocle,
-  "com.github.julien-truffaut"  %%  "monocle-macro" % Version.monocle,
-  "com.github.tototoshi" %% "scala-csv" % "1.3.5"
+  "com.github.tototoshi" %% "scala-csv" % "1.3.5",
+  "org.scalatest" %% "scalatest" % "3.0.4" % Test
 )

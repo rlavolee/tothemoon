@@ -1,5 +1,6 @@
 package helper
 
+import java.util.NoSuchElementException
 import javax.inject.{Inject, Singleton}
 
 import models.AirportRunwaysData
@@ -7,29 +8,33 @@ import models.csv.CountryCode
 import models.reports.{CountryReport, RunwayReport, SurfaceReport}
 import modules.{AirportsManager, CountriesManager, RunwaysManager}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * Aggregate data from in memory collections.
   */
 @Singleton
-class DataAggregator @Inject()(cm: CountriesManager, am: AirportsManager, rm: RunwaysManager) {
+class DataAggregator @Inject()(cm: CountriesManager, am: AirportsManager, rm: RunwaysManager)(implicit ec: ExecutionContext) {
 
   /**
    * return List of airports & runways at each airport from Country Code.
    */
-  def getAirportsRunwaysFromCountryCode(cc: CountryCode): List[AirportRunwaysData] = {
-    (for {
+  def getAirportsRunwaysFromCountryCode(cc: CountryCode): Future[List[AirportRunwaysData]] = {
+    val r = (for {
       a <- am.airports.filter(_.countryCode == cc)
       ard = AirportRunwaysData(a, rm.runways.filter(_.aid == a.id).toList)
     } yield ard).toList
+
+    Future.successful(r)
   }
 
   /**
     * return List of airports & runways at each airport from Country Name.
     */
-  def getAirportsRunwaysFromCountryName(s: String): List[AirportRunwaysData] = {
-    cm.countries.filter(_.name.toLowerCase.startsWith(s)).flatMap{ c =>
-      getAirportsRunwaysFromCountryCode(c.code)
-    }.toList
+  def getAirportsRunwaysFromCountryName(s: String): Future[List[AirportRunwaysData]] = {
+    cm.countries.find(_.name.toLowerCase.startsWith(s)).map{ country =>
+      getAirportsRunwaysFromCountryCode(country.code)
+    }.getOrElse(Future.successful(List.empty))
   }
 
 
@@ -51,18 +56,18 @@ class DataAggregator @Inject()(cm: CountriesManager, am: AirportsManager, rm: Ru
   private def getTopCountriesSortedWith(f: (CountryReport, CountryReport) => Boolean) =
     countryReports.sortWith(f).take(10)
 
-  lazy val getTopCountriesWithHighestNumberAirports: List[CountryReport] =
-    getTopCountriesSortedWith(CountryReport.highestNumber)
+  lazy val getTopCountriesWithHighestNumberAirports: Future[List[CountryReport]] =
+    Future.successful(getTopCountriesSortedWith(CountryReport.highestNumber))
 
-  lazy val getTopCountriesWithLowestNumberAirports: List[CountryReport] =
-    getTopCountriesSortedWith(CountryReport.lowestNumber)
+  lazy val getTopCountriesWithLowestNumberAirports: Future[List[CountryReport]] =
+    Future.successful(getTopCountriesSortedWith(CountryReport.lowestNumber))
 
 
   /**
     * return List of type of runways (as indicated in "surface" column) per country
     */
-  lazy val getTypeRunwaysPerCountry: List[SurfaceReport] = {
-    (for {
+  lazy val getTypeRunwaysPerCountry: Future[List[SurfaceReport]] = {
+    val r = (for {
       // group runway by airport ID
       s <- rm.runways.groupBy(_.aid)
       // get airport by ID to reach country code
@@ -74,5 +79,7 @@ class DataAggregator @Inject()(cm: CountriesManager, am: AirportsManager, rm: Ru
       val r = a.getOrElse(b.cc, Set.empty[String]) ++ b.runways.map(_.surface)
       a + (b.cc -> r)
     }).map(r => SurfaceReport(r._1, r._2)).toList
+
+    Future.successful(r)
   }
 }

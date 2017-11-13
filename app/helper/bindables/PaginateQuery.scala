@@ -12,9 +12,6 @@ case class PaginateQuery (page: Int, limit: Int = 20) {
 
 object PaginateQuery {
 
-  val le = Some(Right[String, Int](20))
-  le
-
   implicit def paginateQueryBindable(implicit intBinder: QueryStringBindable[Int]) = {
     new QueryStringBindable[PaginateQuery] {
       override def bind(key: String, params: Map[String, Seq[String]]) = {

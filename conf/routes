@@ -1,4 +1,12 @@
-GET        /                       controllers.HomeController.index
+
+## Airport
+GET        /airport                controllers.AirportController.get(q: helper.bindables.FilterQuery, p: helper.bindables.PaginateQuery)
+
+
+## Reports
+GET        /report/highest-number         controllers.ReportController.highestNumberAirports()
+GET        /report/lowest-number          controllers.ReportController.lowestNumberAirports()
+GET        /report/type-runways           controllers.ReportController.typeOfRunways()
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /assets/*file        controllers.Assets.at(path="/public", file)

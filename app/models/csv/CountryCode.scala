@@ -8,7 +8,7 @@ case class CountryCode(value: String) extends AnyVal {
 
 object CountryCode {
 
-  private def assert: String => Boolean = _.length <= 2
+  def assert: String => Boolean = _.length <= 2
 
   implicit val reads: Reads[CountryCode] = Reads(_.validate[String].filter(assert).map(CountryCode(_)))
 

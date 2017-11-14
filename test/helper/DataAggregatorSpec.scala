@@ -1,15 +1,16 @@
 package helper
 
-import javax.inject.Inject
-
 import models.AirportRunwaysData
 import models.csv.{Airport, CountryCode, Runway}
 import modules.{AirportsManager, CountriesManager, RunwaysManager}
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.{Matchers, WordSpecLike}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-class DataAggregatorSpec @Inject()(implicit ec: ExecutionContext)  extends AsyncWordSpec with Matchers {
+import scala.concurrent.Await
+
+class DataAggregatorSpec extends WordSpecLike with Matchers {
 
   private val da = new DataAggregator(new CountriesManager, new AirportsManager, new RunwaysManager)
 
@@ -21,10 +22,12 @@ class DataAggregatorSpec @Inject()(implicit ec: ExecutionContext)  extends Async
 
   "DataAggregator" should {
     "correctly aggregate Airports and Runways From a Country Code" in {
-      da.getAirportsRunwaysFromCountryCode(CountryCode("US")).map(r => r shouldEqual airportsRunwaysFromCC)
+      val r = Await.result(da.getAirportsRunwaysFromCountryCode(CountryCode("US")), 5 seconds)
+      r shouldEqual airportsRunwaysFromCC
     }
     "correctly aggregate Airports and Runways From a Country Name" in {
-      da.getAirportsRunwaysFromCountryName("united").map(r => r shouldEqual airportsRunwaysFromCC)
+      val r = Await.result(da.getAirportsRunwaysFromCountryName("united"), 5 seconds)
+      r shouldEqual airportsRunwaysFromCC
     }
   }
 

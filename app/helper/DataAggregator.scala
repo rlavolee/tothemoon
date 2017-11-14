@@ -32,9 +32,11 @@ class DataAggregator @Inject()(cm: CountriesManager, am: AirportsManager, rm: Ru
     * return List of airports & runways at each airport from Country Name.
     */
   def getAirportsRunwaysFromCountryName(s: String): Future[List[AirportRunwaysData]] = {
-    cm.countries.find(_.name.toLowerCase.startsWith(s)).map{ country =>
+    val r = cm.countries.filter(_.name.toLowerCase.startsWith(s)).map{ country =>
       getAirportsRunwaysFromCountryCode(country.code)
-    }.getOrElse(Future.successful(List.empty))
+    }.toList
+
+    Future.sequence(r).map(_.flatten)
   }
 
 

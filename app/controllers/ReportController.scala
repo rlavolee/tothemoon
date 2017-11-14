@@ -8,7 +8,7 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 
 /**
-  * A very small controller that renders a home page.
+  * Report controller that serves statistics.
   */
 @Singleton
 class ReportController @Inject()(cc: ControllerComponents, da: DataAggregator)(implicit ec: ExecutionContext) extends AbstractController(cc) {
